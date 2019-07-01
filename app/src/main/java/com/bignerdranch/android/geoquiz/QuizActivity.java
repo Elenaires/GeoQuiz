@@ -1,5 +1,6 @@
 package com.bignerdranch.android.geoquiz;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ public class QuizActivity extends AppCompatActivity {
     private Button mFalseButton;
     private TextView mQuestionTextView;
     private Button mNextButton;
+    private Button mCheatButton;
 
     private Question[] mQuestionBank = new Question[] {
          new Question(R.string.question_oceans, true),
@@ -36,13 +38,6 @@ public class QuizActivity extends AppCompatActivity {
         setContentView(R.layout.activity_quiz);
 
         mQuestionTextView = findViewById(R.id.question_text_view);
-
-        // get mCurrentIndex from pre-rotation (or pre-configuration changed) activity
-        if(savedInstanceState != null) {
-            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
-        }
-
-        updateQuestion();
 
         // casting to Button is redundant
         mTrueButton = findViewById(R.id.true_button);
@@ -74,6 +69,22 @@ public class QuizActivity extends AppCompatActivity {
                 updateQuestion();
             }
         });
+
+        mCheatButton = findViewById(R.id.cheat_button);
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(QuizActivity.this, CheatActivity.class);
+                startActivity(i);
+            }
+        });
+
+        // get mCurrentIndex from pre-rotation (or pre-configuration changed) activity
+        if(savedInstanceState != null) {
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+        }
+
+        updateQuestion();
     }
 
     @Override
@@ -114,6 +125,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void updateQuestion() {
+        //Log.d(TAG, "Updating question text for question #" + mCurrentIndex, new Exception());
         int question = mQuestionBank[mCurrentIndex].getTextResId();
         mQuestionTextView.setText(question);
     }
