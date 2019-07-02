@@ -1,10 +1,15 @@
 package com.bignerdranch.android.geoquiz;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -12,7 +17,9 @@ public class CheatActivity extends AppCompatActivity {
 
     private static final String EXTRA_ANSWER_IS_TRUE = "com.bignerdranch.android.geoquiz.answer_is_true";
     private static final String EXTRA_ANSWER_SHOWN = "com.bignerdranch.android.geoquiz.answer_shown";
+    private static final String KEY_CHEAT = "cheat";
     private boolean mAnswerIsTrue;
+    private boolean mIsAnswerShown;
     private TextView mAnswerTextView;
     private Button mShowAnswer;
 
@@ -36,9 +43,40 @@ public class CheatActivity extends AppCompatActivity {
                 else {
                     mAnswerTextView.setText(R.string.false_button);
                 }
-                setAnswerShownResult(true);
+                mIsAnswerShown = true;
+                setAnswerShownResult(mIsAnswerShown);
+
+                // Build.VERSION.SDK_INT constant is the device's version of Android
+                // ViewAnimationUtils is added to android sdk in API level 21
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    int cx = mShowAnswer.getWidth() / 2;
+                    int cy = mShowAnswer.getHeight() / 2;
+                    float radius = mShowAnswer.getWidth();
+                    Animator anim = ViewAnimationUtils.createCircularReveal(mShowAnswer, cx,cy,radius, 0);
+                    anim.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            mAnswerTextView.setVisibility(View.VISIBLE);
+                            mShowAnswer.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                    anim.start();
+                }
+                else {
+                    mAnswerTextView.setVisibility(View.VISIBLE);
+                    mShowAnswer.setVisibility(View.INVISIBLE);
+                }
             }
         });
+
+        if(savedInstanceState != null) {
+           mIsAnswerShown = savedInstanceState.getBoolean(KEY_CHEAT, false);
+        }
+
+        if(mIsAnswerShown) {
+            setAnswerShownResult(mIsAnswerShown);
+        }
     }
 
     // this method is created for another activity to call upon when
@@ -66,5 +104,11 @@ public class CheatActivity extends AppCompatActivity {
         // send data back to parent activity
         // if it is not called, parent will receive RESULT_CANCELED
         setResult(RESULT_OK, data);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(KEY_CHEAT, mIsAnswerShown);
     }
 }
